@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Circuit Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fa;--grid:#dbe4ef;--ink:#12263f;--muted:#51647c;--card:#fff;--line:#c5d2e3;--accent:#e8a200;--accent-ink:#12263f;--ok:#0f7b5f;--err:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b2c;--grid:#183049;--ink:#e8eef7;--muted:#9bb0c9;--card:#142740;--line:#2a4568;--accent:#f5b81c;--accent-ink:#0e1b2c;--ok:#4fd1a5;--err:#ff8a80}}
+:root[data-theme="dark"]{--bg:#0e1b2c;--grid:#183049;--ink:#e8eef7;--muted:#9bb0c9;--card:#142740;--line:#2a4568;--accent:#f5b81c;--accent-ink:#0e1b2c;--ok:#4fd1a5;--err:#ff8a80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font-family:"IBM Plex Sans",system-ui,Arial,sans-serif;line-height:1.65;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:28px 16px 48px}
+.law{display:inline-block;font-family:"IBM Plex Mono",monospace;background:var(--accent);color:var(--accent-ink);font-size:1.3rem;padding:2px 14px;border-radius:6px;margin-bottom:12px}
+h1{font-size:clamp(1.9rem,6vw,3rem);font-weight:700;margin:0 0 6px;line-height:1.15;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0 0 22px;max-width:60ch}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{flex:1;min-width:100px;font:inherit;font-weight:500;padding:9px 10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:20px}
+.panel[hidden]{display:none}
+h2{font-size:1.15rem;margin:0 0 4px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+label{display:block;font-weight:500;font-size:.95rem}
+label small{color:var(--muted);font-weight:400}
+input,textarea{width:100%;font:inherit;padding:9px 10px;margin-top:4px;border:1.5px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+.hint{color:var(--muted);font-size:.92rem;margin:8px 0 14px}
+.go{font:inherit;font-weight:700;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 22px;cursor:pointer}
+.ghost{font:inherit;background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:8px;padding:9px 16px;cursor:pointer;margin-left:8px}
+.res{margin-top:18px}
+.ans{font-family:"IBM Plex Mono",monospace;font-size:1.3rem;color:var(--ok)}
+.err{color:var(--err);font-weight:500}
+.ok{color:var(--ok);font-weight:700}
+ol.steps{padding-left:22px;margin:10px 0 0}
+ol.steps li{margin-bottom:6px}
+.eq{font-family:"IBM Plex Mono",monospace;font-size:.92em}
+.list .r{display:flex;gap:8px;margin-bottom:8px}
+.list .r input{margin:0}
+.add{margin:0 0 12px}
+svg.dia{width:100%;height:auto;margin-top:14px;border:1.5px dashed var(--line);border-radius:8px;background:var(--bg)}
+svg.dia text{fill:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:13px}
+.sw{stroke:var(--ink);stroke-width:2.5;fill:none}
+.box{fill:var(--card);stroke:var(--accent);stroke-width:3}
+.note{margin-top:22px;color:var(--muted);font-size:.85rem}
+.score{font-family:"IBM Plex Mono",monospace;margin-top:12px}
+/* ---- refined layout: 8px spacing scale, radius 10 (controls) / 16 (panels) ---- */
+body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);-webkit-mask-image:none}
+main{max-width:820px;padding:24px 16px 56px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.05rem}
+.brand svg{display:block}
+.theme{width:44px;padding:0;font-size:1.2rem}
+.laws{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.laws span{font-family:"IBM Plex Mono",monospace;font-size:.95rem;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:4px 14px}
+.laws span:first-child{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:500}
+h1{font-size:clamp(2.1rem,7vw,3.4rem);margin-bottom:12px}
+.sub{font-size:1.1rem;margin-bottom:32px}
+.tabs{flex-wrap:nowrap;overflow-x:auto;gap:4px;padding:4px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;margin-bottom:16px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:1 0 auto;min-width:0;height:40px;padding:0 16px;border:0;background:transparent;border-radius:10px;white-space:nowrap;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.panel{border-radius:16px;padding:24px;box-shadow:0 1px 0 var(--line),0 12px 32px -20px rgba(18,38,63,.35)}
+@media(max-width:520px){.panel{padding:16px}}
+h2{font-size:1.3rem;margin:0 0 8px;padding-left:12px;border-left:5px solid var(--accent);line-height:1.2}
+.panel>.hint:first-of-type{margin-top:0}
+.hint{margin:8px 0 16px}
+.row{gap:16px}
+label{font-size:.92rem;color:var(--ink)}
+label small{display:inline-block;margin-left:4px}
+input,textarea{height:44px;margin-top:8px;border-radius:10px;font-family:"IBM Plex Mono",monospace;font-size:1rem}
+textarea{height:auto;min-height:110px;font-family:inherit}
+input:focus,textarea:focus{border-color:var(--accent)}
+.go,.ghost{height:44px;border-radius:10px;padding:0 20px;font-size:1rem;margin:0}
+.go{box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.go:active{transform:translateY(1px);box-shadow:none}
+.go+.ghost{margin-left:8px}
+.ghost:hover{border-color:var(--accent)}
+.list .r{gap:8px;margin-bottom:8px}
+.list .r .ghost{width:44px;padding:0;flex:none}
+.add{margin:8px 0 16px!important}
+.res{margin-top:24px;padding-top:24px;border-top:1.5px dashed var(--line)}
+.res:empty{display:none}
+.ans{background:color-mix(in srgb,var(--accent) 16%,var(--card));border-left:5px solid var(--accent);border-radius:10px;padding:12px 16px;color:var(--ink);font-weight:500;margin-bottom:16px}
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:0 0 16px}
+ol.steps li{counter-increment:s;position:relative;padding-left:40px;margin-bottom:12px;min-height:28px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:.85rem;font-weight:700}
+svg.dia{margin:0 0 24px;border-radius:10px}
+.res p{margin:8px 0}
+.note{text-align:center;margin-top:32px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div class="brand"><svg width="32" height="32" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="var(--accent)"/><path d="M15 5L8 15h5l-1 8 8-11h-5z" fill="var(--accent-ink)"/></svg><span>CircuitLab</span></div><button class="ghost theme" id="themeBtn" aria-label="Switch light or dark theme">◐</button></div>
+  <div class="laws"><span>I = V / R</span><span>V = I × R</span><span>P = V × I</span></div>
+  <h1>Smart Circuit Calculator</h1>
+  <p class="sub">Enter what you know. The calculator finds the unknown, shows every step, and draws the circuit.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-t="ohm">Ohm's Law</button>
+    <button role="tab" aria-selected="false" data-t="ser">Series</button>
+    <button role="tab" aria-selected="false" data-t="par">Parallel</button>
+    <button role="tab" aria-selected="false" data-t="wp">Word problem</button>
+    <button role="tab" aria-selected="false" data-t="pr">Practice</button>
+  </div>
+
+  <section class="panel" id="ohm">
+    <h2>Ohm's Law</h2>
+    <div class="row">
+      <label>Voltage V <small>(volts)</small><input id="v" inputmode="decimal" placeholder="e.g. 6"></label>
+      <label>Current I <small>(amps)</small><input id="i" inputmode="decimal"></label>
+      <label>Resistance R <small>(ohms)</small><input id="r" inputmode="decimal" placeholder="e.g. 3"></label>
+    </div>
+    <p class="hint">Fill in exactly two boxes and leave the third empty.</p>
+    <button class="go" id="ohmGo">Calculate</button><button class="ghost" id="ohmEx">Try an example</button>
+    <div class="res" id="ohmOut" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="ser" hidden>
+    <h2>Resistors in series</h2>
+    <p class="hint">Same current flows through every resistor. Resistances add up.</p>
+    <div class="list" id="serList"></div>
+    <button class="ghost add" data-add="ser">+ Add resistor</button>
+    <label>Battery voltage V <small>(optional, volts)</small><input id="serV" inputmode="decimal" placeholder="e.g. 6"></label>
+    <p></p><button class="go" data-calc="ser">Calculate</button>
+    <div class="res" id="serOut" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="par" hidden>
+    <h2>Resistors in parallel</h2>
+    <p class="hint">Same voltage across every branch. Current splits between branches.</p>
+    <div class="list" id="parList"></div>
+    <button class="ghost add" data-add="par">+ Add resistor</button>
+    <label>Battery voltage V <small>(optional, volts)</small><input id="parV" inputmode="decimal" placeholder="e.g. 6"></label>
+    <p></p><button class="go" data-calc="par">Calculate</button>
+    <div class="res" id="parOut" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="wp" hidden>
+    <h2>Describe the circuit in words</h2>
+    <p class="hint">Write a problem with numbers and units (volts, amps, ohms) and say "series" or "parallel" when there are several resistors.</p>
+    <label>Your problem<textarea id="wpIn" placeholder="A 6 volt battery is connected to a 2 ohm and a 1 ohm resistor in series."></textarea></label>
+    <p></p><button class="go" id="wpGo">Solve</button><button class="ghost" id="wpEx">Try an example</button>
+    <div class="res" id="wpOut" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="pr" hidden>
+    <h2>Practice</h2>
+    <p class="hint" id="prQ"></p>
+    <label>Your answer <small id="prU"></small><input id="prA" inputmode="decimal"></label>
+    <p></p><button class="go" id="prCheck">Check answer</button><button class="ghost" id="prNext">New question</button>
+    <div class="res" id="prOut" aria-live="polite"></div>
+    <div class="score" id="prScore"></div>
+  </section>
+
+  <p class="note">Results are rounded to 3 decimal places. Built for learning and revision.</p>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>String(Math.round(n*1000)/1000);
+const num=s=>{s=(s||"").trim().replace(",",".");return s===""?null:Number(s)};
+const E=t=>`<span class="eq">${t}</span>`;
+const err=m=>`<p class="err">${m}</p>`;
+
+/* ---------- diagrams ---------- */
+function bat(x,y){return `<line class="sw" x1="${x-18}" x2="${x+18}" y1="${y-6}" y2="${y-6}"/><line class="sw" x1="${x-9}" x2="${x+9}" y1="${y+6}" y2="${y+6}" stroke-width="5"/><text x="${x+26}" y="${y+4}">+ –</text>`}
+function rbox(x,y,label){return `<rect class="box" x="${x-32}" y="${y-13}" width="64" height="26" rx="4"/><text x="${x}" y="${y+4}" text-anchor="middle">${label}</text>`}
+function diagram(type,rs,V){
+  const n=rs.length,lab=(r,k)=>`R${k+1}=${fmt(r)}Ω`;
+  if(type==="ser"){
+    let s=`<svg class="dia" viewBox="0 0 640 130" role="img" aria-label="Series circuit"><path class="sw" d="M40 30H600V100H40V71M40 59V30"/>${bat(40,65)}<rect x="22" y="56" width="36" height="18" fill="var(--bg)"/>${bat(40,65)}`;
+    rs.forEach((r,k)=>s+=rbox(120+(k+.5)*(440/n),30,lab(r,k)));
+    if(V!=null)s+=`<text x="70" y="69">${fmt(V)}V</text>`;
+    return s+"</svg>";
+  }
+  const H=50+46*n;let s=`<svg class="dia" viewBox="0 0 640 ${H}" role="img" aria-label="Parallel circuit"><path class="sw" d="M40 30V${H/2-6}M40 ${H/2+6}V${H-20}M600 30V${H-20}"/><rect x="22" y="${H/2-9}" width="36" height="18" fill="var(--bg)"/>${bat(40,H/2)}`;
+  rs.forEach((r,k)=>{const y=30+k*46;s+=`<path class="sw" d="M40 ${y}H600"/>${rbox(320,y,lab(r,k))}`});
+  if(V!=null)s+=`<text x="70" y="${H/2+4}">${fmt(V)}V</text>`;
+  return s+"</svg>";
+}
+
+/* ---------- solvers (return HTML) ---------- */
+function ohm(V,I,R){
+  const f=[V,I,R].filter(x=>x!==null);
+  if(f.some(x=>isNaN(x)||x<0))return err("Use positive numbers only.");
+  if(f.length!==2)return err("Fill exactly two boxes. Leave the third one empty.");
+  let h;
+  if(V===null){const x=I*R;h=`<div class="ans">V = ${fmt(x)} V</div><ol class="steps"><li>The unknown is voltage, so use ${E("V = I × R")}</li><li>Substitute: ${E(`V = ${fmt(I)} × ${fmt(R)}`)}</li><li>Result: ${E(`V = ${fmt(x)} V`)}</li></ol>`;V=x}
+  else if(I===null){if(R===0)return err("Resistance cannot be zero here.");const x=V/R;h=`<div class="ans">I = ${fmt(x)} A</div><ol class="steps"><li>The unknown is current, so use ${E("I = V / R")}</li><li>Substitute: ${E(`I = ${fmt(V)} / ${fmt(R)}`)}</li><li>Result: ${E(`I = ${fmt(x)} A`)}</li></ol>`;I=x}
+  else{if(I===0)return err("Current cannot be zero here.");const x=V/I;h=`<div class="ans">R = ${fmt(x)} Ω</div><ol class="steps"><li>The unknown is resistance, so use ${E("R = V / I")}</li><li>Substitute: ${E(`R = ${fmt(V)} / ${fmt(I)}`)}</li><li>Result: ${E(`R = ${fmt(x)} Ω`)}</li></ol>`;R=x}
+  return h+`<p class="hint">Power: ${E(`P = V × I = ${fmt(V*I)} W`)}</p>`;
+}
+function combo(t,rs,V){
+  if(rs.length<2||rs.some(x=>isNaN(x)||x<=0))return err("Enter at least two resistances, all greater than zero.");
+  let R,h;
+  if(t==="ser"){R=rs.reduce((a,b)=>a+b,0);
+    h=`<div class="ans">R total = ${fmt(R)} Ω</div><ol class="steps"><li>In series, resistances add: ${E("R = R₁ + R₂ + …")}</li><li>Substitute: ${E("R = "+rs.map(fmt).join(" + "))}</li><li>Result: ${E(`R = ${fmt(R)} Ω`)}</li></ol>`;
+  }else{const inv=rs.reduce((a,b)=>a+1/b,0);R=1/inv;
+    h=`<div class="ans">R total = ${fmt(R)} Ω</div><ol class="steps"><li>In parallel, add the reciprocals: ${E("1/R = 1/R₁ + 1/R₂ + …")}</li><li>Substitute: ${E("1/R = "+rs.map(x=>"1/"+fmt(x)).join(" + ")+" = "+fmt(inv))}</li><li>Invert: ${E(`R = 1 / ${fmt(inv)} = ${fmt(R)} Ω`)}</li><li>The total is always smaller than the smallest resistor.</li></ol>`;
+  }
+  if(V!=null&&!isNaN(V)&&V>0){
+    h+=`<p><b>Total current:</b> ${E(`I = V / R = ${fmt(V)} / ${fmt(R)} = ${fmt(V/R)} A`)}</p>`;
+    if(t==="ser")h+=`<p class="hint">Voltage drops: ${rs.map((x,k)=>`V${k+1} = ${fmt(V/R*x)} V`).join(", ")}</p>`;
+    else h+=`<p class="hint">Branch currents: ${rs.map((x,k)=>`I${k+1} = ${fmt(V/x)} A`).join(", ")}</p>`;
+    h+=`<p class="hint">Total power: ${E(`P = ${fmt(V*V/R)} W`)}</p>`;
+  }
+  return diagram(t,rs,V)+h;
+}
+
+/* ---------- theme ---------- */
+$("themeBtn").onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;r.dataset.theme=d?"light":"dark"};
+/* ---------- tabs ---------- */
+const T=["ohm","ser","par","wp","pr"];
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  T.forEach(t=>$(t).hidden=t!==b.dataset.t);
+});
+
+/* ---------- Ohm tab ---------- */
+const runOhm=()=>$("ohmOut").innerHTML=ohm(num($("v").value),num($("i").value),num($("r").value));
+$("ohmGo").onclick=runOhm;
+$("ohmEx").onclick=()=>{$("v").value="6";$("i").value="";$("r").value="3";runOhm()};
+
+/* ---------- series / parallel tabs ---------- */
+function addRow(t,val){
+  const d=document.createElement("div");d.className="r";
+  d.innerHTML=`<input inputmode="decimal" placeholder="Resistance (Ω)" value="${val||""}" aria-label="Resistance in ohms"><button class="ghost" style="margin:0" aria-label="Remove">✕</button>`;
+  d.querySelector("button").onclick=()=>{if($(t+"List").children.length>2)d.remove()};
+  $(t+"List").appendChild(d);
+}
+["ser","par"].forEach(t=>{addRow(t,"2");addRow(t,t==="ser"?"1":"2")});
+document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addRow(b.dataset.add));
+document.querySelectorAll("[data-calc]").forEach(b=>b.onclick=()=>{
+  const t=b.dataset.calc,rs=[...$(t+"List").querySelectorAll("input")].map(i=>num(i.value));
+  $(t+"Out").innerHTML=rs.some(x=>x===null)?err("Fill in every resistance box."):combo(t,rs,num($(t+"V").value));
+});
+
+/* ---------- word problem ---------- */
+function solveText(txt){
+  const re=/(\d*\.?\d+)\s*(k|m)?\s*(volts?|v|amps?|amperes?|a|milliamps?|ma|ohms?|kohms?|Ω)\b/gi;
+  let V=null,I=null,rs=[],m;
+  while((m=re.exec(txt))){
+    let x=parseFloat(m[1]),u=m[3].toLowerCase(),p=(m[2]||"").toLowerCase();
+    if(u==="ma"||u.startsWith("milli")){x/=1000;u="a"}
+    if(p==="k")x*=1000;if(p==="m"&&u.startsWith("a"))x/=1000;
+    if(u[0]==="v")V=x;else if(u==="a"||u.startsWith("amp"))I=x;else rs.push(x);
+  }
+  const mode=/parallel/i.test(txt)?"par":/series/i.test(txt)?"ser":null;
+  if(rs.length>=2){if(!mode)return err("I found several resistors. Please say whether they are in series or parallel.");return combo(mode,rs,V)}
+  if(rs.length===1)return ohm(V,I,rs[0]);
+  if(V!==null&&I!==null)return ohm(V,I,null);
+  return err("I could not find enough values. Include numbers with units, for example: 6 volts, 2 ohms, 3 amps.");
+}
+$("wpGo").onclick=()=>$("wpOut").innerHTML=solveText($("wpIn").value);
+$("wpEx").onclick=()=>{$("wpIn").value="A 12 volt battery is connected to a 4 ohm and a 12 ohm resistor in parallel.";$("wpGo").click()};
+
+/* ---------- practice ---------- */
+let q=null,right=0,total=0;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function newQ(){
+  const R=pick([2,4,5,10,20,50]),I=pick([0.5,1,2,3,4]),V=R*I,k=pick(["V","I","R"]);
+  q={k,ans:{V,I,R}[k]};
+  const given={V:`${fmt(V)} V`,I:`${fmt(I)} A`,R:`${fmt(R)} Ω`};delete given[k];
+  const names={V:"the voltage V",I:"the current I",R:"the resistance R"};
+  $("prQ").textContent=`A circuit has ${Object.values(given).join(" and ")}. Find ${names[k]}.`;
+  $("prU").textContent={V:"(volts)",I:"(amps)",R:"(ohms)"}[k];
+  $("prA").value="";$("prOut").innerHTML="";
+}
+$("prCheck").onclick=()=>{
+  const a=num($("prA").value);if(a===null||isNaN(a)){$("prOut").innerHTML=err("Type a number first.");return}
+  total++;const good=Math.abs(a-q.ans)<=Math.abs(q.ans)*0.01;if(good)right++;
+  $("prOut").innerHTML=good?`<p class="ok">Correct! ${fmt(q.ans)}</p>`:`<p class="err">Not quite. The answer is ${fmt(q.ans)}.</p>`;
+  $("prScore").textContent=`Score: ${right} / ${total}`;
+};
+$("prNext").onclick=newQ;newQ();
+</script>
+</body>
+</html>
